@@ -1,9 +1,24 @@
 // Configuración base de la API
-const API_URL = "http://localhost:3000/"; // Cambia esto según tu backend
+const API_URL = "http://localhost:8080/api"; // Cambia esto según tu backend
 
 // Helper para manejar respuestas
 const handleResponse = async (response) => {
-  const data = await response.json();
+  // Ver qué está devolviendo el servidor
+  const text = await response.text();
+  console.log("Respuesta del servidor:", text);
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (error) {
+    console.error("Error parseando JSON:", error);
+    console.error("Contenido recibido:", text);
+    throw {
+      status: response.status,
+      message:
+        "El servidor no devolvió JSON válido. Verifica la URL del backend.",
+    };
+  }
 
   if (!response.ok) {
     throw {
@@ -19,7 +34,7 @@ const handleResponse = async (response) => {
 export const authService = {
   // Login
   login: async (email, password) => {
-    const response = await fetch(`${API_URL}/login`, {
+    const response = await fetch(`${API_URL}/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -30,7 +45,33 @@ export const authService = {
     return handleResponse(response);
   },
 
-  // Registro
+  // Registro de Comprador (Buyer)
+  registerBuyer: async (buyerData) => {
+    const response = await fetch(`${API_URL}/auth/register/buyer`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(buyerData),
+    });
+
+    return handleResponse(response);
+  },
+
+  // Registro de Vendedor (Vendor/Provider)
+  registerVendor: async (vendorData) => {
+    const response = await fetch(`${API_URL}/auth/register/vendor`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(vendorData),
+    });
+
+    return handleResponse(response);
+  },
+
+  // Registro (método genérico por si lo necesitas)
   register: async (userData) => {
     const response = await fetch(`${API_URL}/register`, {
       method: "POST",

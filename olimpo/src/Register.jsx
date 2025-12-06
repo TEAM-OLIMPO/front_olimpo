@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import "./Register.css";
+import { authService } from "./apiService";
 
 const Register = ({ onBack, onRegisterSuccess }) => {
   const [userType, setUserType] = useState(""); // 'customer' or 'provider'
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,7 +25,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validación básica
@@ -32,15 +34,59 @@ const Register = ({ onBack, onRegisterSuccess }) => {
       return;
     }
 
-    console.log("Registro:", { userType, ...formData });
-    alert(
-      `¡Registro exitoso como ${
-        userType === "customer" ? "Usuario" : "Proveedor"
-      }!`
-    );
+    setIsLoading(true);
 
-    if (onRegisterSuccess) {
-      onRegisterSuccess();
+    try {
+      let response;
+
+      // Preparar datos según el tipo de usuario
+      if (userType === "customer") {
+        // Registro de comprador (buyer)
+        const buyerData = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone,
+        };
+
+        response = await authService.registerBuyer(buyerData);
+      } else {
+        // Registro de vendedor (provider/vendor)
+        const vendorData = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone,
+          businessName: formData.businessName,
+          businessAddress: formData.businessAddress,
+          rfc: formData.rfc,
+          licenseNumber: formData.licenseNumber,
+        };
+
+        response = await authService.registerVendor(vendorData);
+      }
+
+      // Registro exitoso
+      console.log("Registro exitoso:", response);
+      alert(
+        `¡Registro exitoso como ${
+          userType === "customer" ? "Usuario" : "Proveedor"
+        }!`
+      );
+
+      // Guardar token si viene en la respuesta
+      if (response.token) {
+        localStorage.setItem("token", response.token);
+      }
+
+      if (onRegisterSuccess) {
+        onRegisterSuccess();
+      }
+    } catch (error) {
+      console.error("Error en registro:", error);
+      alert(error.message || "Error al registrarse. Intenta de nuevo.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -53,7 +99,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
           </button>
           <div className="logo-section">
             <div className="logo-icon">🌱</div>
-            <span className="logo-text">Olimpo</span>
+            <span className="logo-text">SaveFood</span>
           </div>
           <h1>Crear Cuenta</h1>
           <p>
@@ -246,8 +292,12 @@ const Register = ({ onBack, onRegisterSuccess }) => {
                 >
                   ← Cambiar Tipo de Cuenta
                 </button>
-                <button type="submit" className="btn-submit">
-                  Crear Cuenta
+                <button
+                  type="submit"
+                  className="btn-submit"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creando cuenta..." : "Crear Cuenta"}
                 </button>
               </div>
             </form>
