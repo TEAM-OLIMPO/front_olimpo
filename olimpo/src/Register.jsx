@@ -43,7 +43,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
       if (userType === "customer") {
         // Registro de comprador (buyer)
         const buyerData = {
-          name: formData.name,
+          nombre: formData.name,
           email: formData.email,
           password: formData.password,
           phone: formData.phone,
@@ -53,7 +53,7 @@ const Register = ({ onBack, onRegisterSuccess }) => {
       } else {
         // Registro de vendedor (provider/vendor)
         const vendorData = {
-          name: formData.name,
+          nombre: formData.name,
           email: formData.email,
           password: formData.password,
           phone: formData.phone,
